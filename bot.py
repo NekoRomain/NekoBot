@@ -9,7 +9,7 @@ from discord.ext import commands
 vc = None
 
 TOKEN = "#your token"
-ID_CHANNEL_MUSIC = 360842325162852354
+ID_CHANNEL_MUSIC = #ID_MUSIC_CHANNEL
 musics = []
 PATH = "./Musics/"
 EXTENTION = ".webm"
