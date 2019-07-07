@@ -8,7 +8,7 @@ import youtube_dl
 from discord.ext import commands
 vc = None
 
-TOKEN = "NDMzMDY4NDM0Mzk4NjQyMTc3.XSD0Vg.3rUqJx-jrwadbuoJb1dSzgmEgmc"
+TOKEN = "#your token"
 ID_CHANNEL_MUSIC = 360842325162852354
 musics = []
 PATH = "./Musics/"
