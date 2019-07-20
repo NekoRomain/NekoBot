@@ -6,35 +6,38 @@ import os
 import time
 import youtube_dl
 from discord.ext import commands
-vc = None
 
-TOKEN = "#your token"
-ID_CHANNEL_MUSIC = #ID_MUSIC_CHANNEL
+bot = commands.Bot(command_prefix='!', description='MikuBot!')
+
+vc = None
+actualMusic = ""
+TOKEN = "NDMzMDY4NDM0Mzk4NjQyMTc3.XSD0Vg.3rUqJx-jrwadbuoJb1dSzgmEgmc"
+ID_CHANNEL_MUSIC = 360842325162852354
 musics = []
 PATH = "./Musics/"
-EXTENTION = ".webm"
 ydl_id_opt = PATH+'%(id)s.%(ext)s'
-ydl_title_opt = PATH+'%(title)s.%(ext)s'
-bot = commands.Bot(command_prefix='!', description='MikuBot!')
+ydl_title_opt = PATH+'a.%(ext)s'
+#ydl_title_opt = PATH+'%(title)s.%(ext)s'
+
 def my_hook(d):
     if d['status'] == 'finished':
         print('Done downloading, now converting ...')
 
-ydl_opts = {
-    'outtmpl': ydl_title_opt,
-    'format': 'bestaudio/best',
-    'download_archive': 'dl.txt',
-    'postprocessors': [{
-        'key': 'FFmpegExtractAudio',
-        'preferredcodec': 'mp3',
-        'preferredquality': '192',
-    }],
-    'progress_hooks': [my_hook],
-}
+# ydl_opts = {
+#     'outtmpl': ydl_title_opt,
+#     'format': 'bestaudio/best',
+#     'download_archive': 'dl.txt',
+#     'postprocessors': [{
+#         'key': 'FFmpegExtractAudio',
+#         'preferredcodec': 'mp3',
+#         'preferredquality': '192',
+#     }],
+#     'progress_hooks': [my_hook],
+# }
+
 ydl_opts_webm = {
     'outtmpl': ydl_title_opt,
     'format': 'bestaudio/best',
-    'download_archive': 'dl.txt',
     'progress_hooks': [my_hook],
 }
 
@@ -47,54 +50,41 @@ async def on_ready():
     print("-----")
     
     
-
-
 @bot.command()
-async def dl_yt(ctx, url):
+async def dlp(ctx, url):
+    global vc, actualMusic
+    if not vc or not vc.is_connected():
+        await connectVocal()
+    elif vc.is_playing() or vc.is_paused():
+        if vc.is_playing():
+            vc.pause()
+            time.sleep(0.5)
+        vc.stop()
+        os.remove(actualMusic)
+        actualMusic = ""
+
     with youtube_dl.YoutubeDL(ydl_opts_webm) as ydl:
         await ctx.send("Veuillez patienter... NYA~")
-        ydl.extract_info(url)
+        info = ydl.extract_info(url)
         await ctx.send("Fini! NYA~")
-
-
-@bot.command()
-async def play(ctx, arg):
-    global vc
-    if arg == "list":
-        listMusic = ""
-        i = 1
-        musics.clear()
-        for r, d, f in os.walk(PATH):
-            for file in f:
-                if EXTENTION in file:
-                    musics.append(file)
-                    listMusic += str(i) + " : " + file + "\n"
-                    i +=1
-        if listMusic == "":
-            listMusic = "Aucune musique ~NYA"
-        await ctx.send(listMusic)
-    elif 0 < int(arg) <= len(musics):
-        if len(musics) == 0:
-            await ctx("Lancer d'abord !play list ~NYA")
-            return
-        if not vc or not vc.is_connected():
-           await connectVocal()
-        if vc.is_playing() or vc.is_paused():
-            vc.stop()
-        await ctx.send("PLAY! NYA~")
-        vc.play(discord.FFmpegPCMAudio(PATH+musics[int(arg) - 1]))
-        print("Music : {}".format(PATH+musics[int(arg) - 1]))
+        actualMusic = PATH + "a."+ info["ext"]
+        await ctx.send("NOW PLAYING {} ! NYA~".format(info["title"]))
+        vc.play(discord.FFmpegPCMAudio(actualMusic))
         vc.source = discord.PCMVolumeTransformer(vc.source)
         vc.source.volume = 0.25
+        
 
-#@bot.command()
-#async def disconnect(ctx):
-#    global vc
-#    #channel = bot.get_channel(ID_CHANNEL_MUSIC)
-#    #for b in bot.voice_clients:
-#    #   await b.disconnect()
-#    if vc:
-#        await vc.disconnect()
+@bot.command()
+async def disconnect(ctx):
+    global vc, actualMusic
+    #channel = bot.get_channel(ID_CHANNEL_MUSIC)
+    #for b in bot.voice_clients:
+    #   await b.disconnect()
+    if vc:
+        if actualMusic:
+            os.remove(actualMusic)
+            actualMusic = ""
+        await vc.disconnect()
 
 async def connectVocal():
     global vc
@@ -132,13 +122,24 @@ async def pause(ctx):
 
 @bot.command()
 async def stop(ctx):
-    global vc
+    global vc, actualMusic
     if vc:
         if vc.is_playing or vc.is_paused:
             vc.stop()
+            os.remove(actualMusic)
+            actualMusic = ""
 
 @bot.command()
 async def exit(ctx):
+    global vc, actualMusic
+    if vc:
+        if vc.is_playing or vc.is_paused:
+            if vc.is_playing():
+                vc.pause()
+                time.sleep(0.5)
+            vc.stop()
+            os.remove(actualMusic)
+            actualMusic = ""
     return await bot.logout()
 
 bot.run(TOKEN)
