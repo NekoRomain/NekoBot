@@ -11,8 +11,8 @@ bot = commands.Bot(command_prefix='!', description='MikuBot!')
 
 vc = None
 actualMusic = ""
-TOKEN = "NDMzMDY4NDM0Mzk4NjQyMTc3.XSD0Vg.3rUqJx-jrwadbuoJb1dSzgmEgmc"
-ID_CHANNEL_MUSIC = 360842325162852354
+TOKEN = #your_bot_token
+ID_CHANNEL_MUSIC = #id_channel
 musics = []
 PATH = "./Musics/"
 ydl_id_opt = PATH+'%(id)s.%(ext)s'
